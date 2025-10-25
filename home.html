@@ -1,0 +1,75 @@
+{% extends 'Music/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section text-center py-5 text-white">
+    <h1 class="display-3 fw-bold mb-3">Student Song Portal</h1>
+    <p class="lead fs-4">Your gateway to curated, focus-enhancing music for students</p>
+</div>
+
+<!-- Features Section -->
+<div class="container my-5">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark bg-opacity-50 p-4 h-100 text-white">
+                <h4>Verified Access</h4>
+                <p>Only registered students gain access, keeping your learning environment safe and exclusive.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark bg-opacity-50 p-4 h-100 text-white">
+                <h4>Curated Music</h4>
+                <p>Boost concentration and creativity with tracks selected specifically for students.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark bg-opacity-50 p-4 h-100 text-white">
+                <h4>AI Assistance</h4>
+                <p>Get instant guidance and help navigating the portal with our integrated chatbot.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chatbox Fixed Bottom-Right -->
+<div class="chatbox-container position-fixed" style="bottom:20px; right:20px; width:300px; z-index:1000;">
+    <div class="card p-3 shadow">
+        <h6 class="mb-2">Portal Assistant</h6>
+        <div id="chatOutput" class="border p-2 mb-2" style="height:180px; overflow-y:auto; background-color:white; color:black; display:flex; align-items:center; justify-content:center;">
+            <img id="placeholderCartoon" src="{% static 'app1/cartoon.png' %}" alt="Assistant" style="width:50px; height:50px;">
+        </div>
+        <input type="text" id="userInput" class="form-control mb-2" placeholder="Type your question..." style="background-color:white; color:black; border:1px solid #ccc;">
+        <button class="btn btn-success w-100" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function sendMessage() {
+    let msg = document.getElementById('userInput').value;
+    if(msg.trim() === "") return;
+
+    let placeholder = document.getElementById('placeholderCartoon');
+    if(placeholder) placeholder.remove();
+
+    fetch("{% url 'chatbot_response' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'message=' + encodeURIComponent(msg)
+    })
+    .then(res => res.json())
+    .then(data => {
+        let chatDiv = document.getElementById('chatOutput');
+        chatDiv.innerHTML += `<p><b>You:</b> ${msg}</p><p><b>Bot:</b> ${data.reply}</p>`;
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+        document.getElementById('userInput').value = '';
+    })
+    .catch(err => console.error(err));
+}
+</script>
+{% endblock %}
